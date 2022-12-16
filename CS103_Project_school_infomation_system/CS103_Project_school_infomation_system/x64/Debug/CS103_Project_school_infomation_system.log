@@ -1,2 +1,3 @@
-﻿  main.cpp
+﻿  windowInti.cpp
+C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\CS103_Project_school_infomation_system\windowInti.cpp(63,18): warning C4244: 'initializing': conversion from 'unsigned short' to 'char', possible loss of data
   CS103_Project_school_infomation_system.vcxproj -> C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\x64\Debug\CS103_Project_school_infomation_system.exe

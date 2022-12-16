@@ -10,6 +10,7 @@ Character Set -> Use Unicode.
 #endif
 
 
+
 class WindowInti {
 public:
 	WindowInti();
@@ -20,16 +21,22 @@ public:
 	void DrawTextWString(int x, int y, std::wstring text);
 
 	void ClearConsole();
+	
+	void DrawUserInput(int x, int y);
+	
+	bool GetKey(unsigned short key);
+	//virtual void Draw(int x, int y, short symbol);
 
-	virtual void Draw(int x, int y, short symbol);
-
-	void DrawLine(int x1, int y1, int x2, int y2, short symbol = 0x2588);
-
+	//void DrawLine(int startX, int startY, int endX, int endY, short symbol = 0x2588);
+	
 private:
 		
 	int width = 120;
 	int height = 40;
 	wchar_t* screen;
+
+	short keyOldState[256] = { 0 };
+	short keyNewState[256] = { 0 };
 
 	DWORD dwBytesWitten;
 	
