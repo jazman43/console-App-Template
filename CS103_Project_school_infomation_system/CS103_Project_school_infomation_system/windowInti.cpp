@@ -3,32 +3,80 @@
 WindowInti::WindowInti()
 {
 
-	screen = new wchar_t[width * height];
-	handleConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleActiveScreenBuffer(handleConsole);
-	dwBytesWitten = 0;
+	handleStdIn = GetStdHandle(STD_INPUT_HANDLE);
+	handleStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	
+
+
+	if (handleStdIn == INVALID_HANDLE_VALUE || handleStdOut == INVALID_HANDLE_VALUE)
+	{
+		MessageBox(NULL, TEXT("GetStdHandle"), TEXT("Console Error"),
+			MB_OK);
+		Error(L"Bad Handle");
+	}
+
+	rectWindow = { 0,0,1,1 };
+	SetConsoleWindowInfo(handleStdOut, true, &rectWindow);
+
+	//set size of screen buffer;
+	COORD coord = { (short)width,(short)height };
+	if (!SetConsoleScreenBufferSize(handleStdOut, coord)) {
+		//return an error text
+		Error(L"SetConsoleScreenBufferSize");
+	}
+
+	//Assign screen buffer to console
+	if (!SetConsoleActiveScreenBuffer(handleStdOut)) {
+		//return an error Text
+		Error(L"SetConsoleActiveScreenBuffer");
+	}
+
+	//set physical console size
+	rectWindow = { 0,0,(short)width - 1,(short)height - 1 };
+	if (!SetConsoleWindowInfo(handleStdOut, TRUE, &rectWindow)) {
+		//return an error Text
+		Error(L"SetConsoleWindowInfo");
+	}
+	
+	//set flags to allow mouse input
+	if (!SetConsoleMode(handleStdIn, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT)) {
+		//return an error Text
+		Error(L"SetConsoleMode");
+	}
+
+	//allocate menory for screen buffer
+	screen = new CHAR_INFO[width * height];
+	memset(screen, 0, sizeof(CHAR_INFO) * width * height);
+
+	//SetConsoleCtrlHandler((PHANDLER_ROUTINE)CloseHandle, TRUE);
+
+
+	
+
+	SetConsoleTitle(L"School Info System");
 }
 
 WindowInti::~WindowInti()
 {
+	SetConsoleActiveScreenBuffer(handleConsole);
+	delete[] screen;
 }
 
 
 void WindowInti::Update()
 {
-	
-
-	screen[width * height - 1] = '\0';
-	WriteConsoleOutputCharacter(handleConsole, screen, width * height, { 0,0 }, &dwBytesWitten);
+		
+	WriteConsoleOutput(handleStdOut, screen, { (short)width, (short)height }, { 0,0 }, &rectWindow);
 }
 
 
-void WindowInti::DrawTextWString(int x, int y, std::wstring text)
+void WindowInti::DrawTextWString(int x, int y, std::wstring text, short color)
 {
 	
 	for (int i = 0; i < text.size(); i++) {
-		screen[y * width + x + i] = text[i];
+		screen[y * width + x + i].Char.UnicodeChar = text[i];
+		screen[y * width + x + i].Attributes = color;
 	}
 }
 
@@ -36,7 +84,7 @@ void WindowInti::ClearConsole()
 {
 	for (int x = 0; x < width; x++) {
 		for (int y = 0; y < height; y++) {
-			screen[y * width + x] = L' ';
+			screen[y * width + x].Char.UnicodeChar = L' ';
 		}
 	}
 	
@@ -44,17 +92,8 @@ void WindowInti::ClearConsole()
 //not working yet
 void WindowInti::DrawUserInput(int x, int y)
 {
-	//std::wstring text;
-	unsigned short input =' ';
 
-	if (GetKey(input)) {
-
-		for (int i = 0; i < sizeof(std::wstring); i++) {
-			screen[y * width + x + i] = input;
-		}
-	}
 	
-
 	
 }
 
@@ -69,26 +108,104 @@ bool WindowInti::GetKey(unsigned short key)
 	return 0;
 }
 
+int WindowInti::Error(const wchar_t* msg)
+{
+	wchar_t buf[256];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
+	SetConsoleActiveScreenBuffer(handleConsole);
+	wprintf(L"ERROR: %s\n\t%s\n", msg, buf);
+	return 1;
+	
+}
 
 
-//void WindowInti::Draw(int x, int y, short symbol)
-//{
-//	if (x >= 0 && x < width && y >= 0 && y < height)
-//	{
-//		screen[y * width + x] = symbol;
-//		
-//	}
-//}
 
-//void WindowInti::DrawLine(int startX, int startY, int endX, int endY, short symbol)
-//{
-//	for (int x = startX; x < width; x++) {
-//		for (int y = startY; y < height; y++) {
-//
-//			screen[y * width + x + y] = symbol;
-//			
-//		}
-//	}
-//
-//}
+void WindowInti::Draw(int x, int y, short symbol, short color)
+{
+	if (x >= 0 && x < width && y >= 0 && y < height)
+	{
+		screen[y * width + x].Char.UnicodeChar = symbol;
+		screen[y * width + x + y].Attributes = color;
+	}
+}
+
+void WindowInti::DrawLine(int startX, int startY, int endX, int endY, short symbol, short color)
+{
+	int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
+
+
+	dx = endX - startX;
+	dy = endY - startY;
+	dx1 = abs(dx);
+	dy1 = abs(dy);
+	px = 2 * dy1 - dx1;
+	py = 2 * dx1 - dy1;
+
+
+	if (dy1 <= dx1)
+	{
+		if (dx >= 0)
+		{
+			x = startX;
+			y = startY;
+			xe = endX;
+		}
+		else
+		{
+			x = endX;
+			y = endY;
+			xe = startX;
+		}
+
+		Draw(x, y, symbol, color);
+
+		for (i = 0; x < xe; i++)
+		{
+			x = x + 1;
+			if (px < 0)
+				px = px + 2 * dy1;
+			else
+			{
+				if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) 
+					y = y + 1;
+				else y = y - 1;
+				px = px + 2 * (dy1 - dx1);
+			}
+			Draw(x, y, symbol, color);
+		}
+	}
+	else
+	{
+		if (dy >= 0)
+		{
+			x = startX;
+			y = startY;
+			ye = endY;
+		}
+		else
+		{
+			x = endX;
+			y = endY;
+			ye = startY;
+		}
+
+		Draw(x, y, symbol, color);
+
+		for (i = 0; y < ye; i++)
+		{
+			y = y + 1;
+			if (py <= 0)
+				py = py + 2 * dx1;
+			else
+			{
+				if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0))
+					x = x + 1;
+				else x = x - 1;
+				py = py + 2 * (dx1 - dy1);
+			}
+			Draw(x, y, symbol, color);
+		}
+	}
+
+}
 
