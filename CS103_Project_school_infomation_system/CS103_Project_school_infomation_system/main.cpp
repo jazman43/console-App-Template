@@ -18,22 +18,36 @@ int main() {
 		//Draw Text wstring fucntion tack an x and y position and a wide string (L"text") upper case L must come frist 
 		consoleCreate.DrawTextWString(10, 20,L"hello Thierry");
 		
-		consoleCreate.Draw(0, 0);
-		
-		consoleCreate.DrawLine(0, 1, 60, 1);
+		consoleCreate.DrawLine(0, 12, 120, 12);
 
-		if (consoleCreate.GetKey('S')) {
-			consoleCreate.DrawTextWString(20, y, L"hello jared");	
-			y++;
+		if (consoleCreate.IsFocsed()) {
+			consoleCreate.DrawTextWString(10, 22, L"console is focsed");
 		}
-		if (consoleCreate.GetKey('W'))
+		
+		consoleCreate.DrawLine(0, 2, 120, 2);
+
+
+		//use captile letter for get key and use VK_ for other keys
+		if (consoleCreate.GetKey('S').isPressed) {
+			consoleCreate.DrawTextWString(20, y, L"hello jared");	
+			
+		}
+		if (consoleCreate.GetKey('W').isRelesed)
 		{
 			consoleCreate.ClearConsole();
 		}
-		
-		
+		if (consoleCreate.GetMouseX() == 55 && consoleCreate.GetMouseY() == 30) {
+			consoleCreate.DrawTextWString(55, 30, L"the mouse is at 55x and 30y ish");
+		}
 
-		//updates console every frame
+		//0 for left 1 for right mouse button
+		if (consoleCreate.GetMouse(1).isPressed) {
+			consoleCreate.DrawTextWString(55, 31, L"the mouse button (1) is pressed",BG_GREEN);
+		}
+		if (consoleCreate.GetMouse(0).isPressed) {
+			consoleCreate.DrawTextWString(55, 32, L"the mouse button (0) is pressed");
+		}
+		//updates console and mouse/keys every frame 
 		consoleCreate.Update();
 	}
 

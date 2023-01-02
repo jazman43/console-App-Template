@@ -66,6 +66,83 @@ WindowInti::~WindowInti()
 
 void WindowInti::Update()
 {
+	//handle keyboard input
+	for (int i = 0; i < 256; i++) {
+		keyNewState[i] = GetAsyncKeyState(i);
+
+		keys[i].isPressed = false;
+		keys[i].isRelesed = false;
+
+		if (keyNewState[i] != keyOldState[i]) {
+
+			if (keyNewState[i] & 0x8000) {
+				keys[i].isPressed = !keys[i].isHold;
+				keys[i].isHold = true;
+			}
+			else
+			{
+				keys[i].isRelesed = true;
+				keys[i].isHold = false;
+			}
+		}
+
+		keyOldState[i] = keyNewState[i];
+
+	}
+
+	INPUT_RECORD inputBuffer[32];
+	DWORD events = 0;
+	GetNumberOfConsoleInputEvents(handleStdIn, &events);
+	if (events > 0) {
+		ReadConsoleInput(handleStdIn, inputBuffer, events, &events);
+	}
+
+	for (DWORD i = 0; i < events; i++) {
+		switch (inputBuffer[i].EventType)
+		{
+		case FOCUS_EVENT:
+			//set focus
+			consoleInFocus = inputBuffer[i].Event.FocusEvent.bSetFocus;
+			break;
+		case MOUSE_EVENT:
+			switch (inputBuffer[i].Event.MouseEvent.dwEventFlags)
+			{
+			case MOUSE_MOVED:
+				mousePosX = inputBuffer[i].Event.MouseEvent.dwMousePosition.X;
+				mousePosY = inputBuffer[i].Event.MouseEvent.dwMousePosition.Y;
+			break;
+			case 0:
+				for (int m = 0; m < 5; m++) {
+					mouseNewState[m] = (inputBuffer[i].Event.MouseEvent.dwButtonState & (1 << m)) > 0;
+				}
+
+			default:
+				break;
+			}
+		default:
+			break;
+		}
+	}
+	for (int m = 0; m < 5; m++) {
+		mouse[m].isPressed = false;
+		mouse[m].isRelesed = false;
+
+		if (mouseNewState[m] != mouseOldState[m]) {
+			if (mouseNewState[m]) {
+				mouse[m].isPressed = true;
+				mouse[m].isHold = true;
+			}
+			else
+			{
+				mouse[m].isRelesed = true;
+				mouse[m].isHold = false;
+			}
+		}
+
+		mouseOldState[m] = mouseNewState[m];
+
+	}
+
 		
 	WriteConsoleOutput(handleStdOut, screen, { (short)width, (short)height }, { 0,0 }, &rectWindow);
 }
@@ -97,16 +174,6 @@ void WindowInti::DrawUserInput(int x, int y)
 	
 }
 
-bool WindowInti::GetKey(unsigned short key)
-{
-	char currentKey = key;
-	
-	if (GetAsyncKeyState(key) & 0x8000) {
-		return 1;
-	}
-
-	return 0;
-}
 
 int WindowInti::Error(const wchar_t* msg)
 {
