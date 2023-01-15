@@ -1,6 +1,10 @@
 #pragma once
 #include <windows.h>
 #include <string>
+#include <iostream>
+#include <stdio.h>
+
+
 
 #ifndef UNICODE
 #error Please enable UNICODE for your compiler!
@@ -69,7 +73,7 @@ public:
 
 	void ClearConsole();
 	
-	void DrawUserInput(int x, int y);	
+	void DrawUserInput(short x, short y, short endX, short endY,short color = FG_WHITE);
 
 	void Draw(int x, int y, short symbol = PIXEL_SOLID, short color = FG_WHITE);
 
@@ -93,9 +97,11 @@ private:
 	int height = 40;
 	CHAR_INFO* screen;
 
+	INPUT_RECORD inputBuffer[32];
+	DWORD events = 0;
 	
-
-
+	DWORD read, written;
+	COORD coord;
 	SMALL_RECT rectWindow;
 	
 	HANDLE handleStdOut, handleStdIn;
@@ -104,7 +110,7 @@ private:
 
 	CONSOLE_SCREEN_BUFFER_INFO OriginalConsoleInfo;
 
-
+	CHAR chBuffer[256];
 
 	int Error(const wchar_t* msg);
 	

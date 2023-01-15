@@ -20,7 +20,7 @@ WindowInti::WindowInti()
 	SetConsoleWindowInfo(handleStdOut, true, &rectWindow);
 
 	//set size of screen buffer;
-	COORD coord = { (short)width,(short)height };
+	coord = { (short)width,(short)height };
 	if (!SetConsoleScreenBufferSize(handleStdOut, coord)) {
 		//return an error text
 		Error(L"SetConsoleScreenBufferSize");
@@ -40,7 +40,7 @@ WindowInti::WindowInti()
 	}
 	
 	//set flags to allow mouse input
-	if (!SetConsoleMode(handleStdIn, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT)) {
+	if (!SetConsoleMode(handleStdIn, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT)) {
 		//return an error Text
 		Error(L"SetConsoleMode");
 	}
@@ -90,8 +90,8 @@ void WindowInti::Update()
 
 	}
 
-	INPUT_RECORD inputBuffer[32];
-	DWORD events = 0;
+	inputBuffer[31];
+	events = 0;
 	GetNumberOfConsoleInputEvents(handleStdIn, &events);
 	if (events > 0) {
 		ReadConsoleInput(handleStdIn, inputBuffer, events, &events);
@@ -150,11 +150,15 @@ void WindowInti::Update()
 
 void WindowInti::DrawTextWString(int x, int y, std::wstring text, short color)
 {
+	COORD startPos = { x,y };
+
+	WriteConsoleOutputCharacterW(handleStdOut, text.c_str(), text.size(), startPos, &events);
+
 	
-	for (int i = 0; i < text.size(); i++) {
+	/*for (int i = 0; i < text.size(); i++) {
 		screen[y * width + x + i].Char.UnicodeChar = text[i];
 		screen[y * width + x + i].Attributes = color;
-	}
+	}*/
 }
 
 void WindowInti::ClearConsole()
@@ -166,11 +170,21 @@ void WindowInti::ClearConsole()
 	}
 	
 }
-//not working yet
-void WindowInti::DrawUserInput(int x, int y)
-{
 
+void WindowInti::DrawUserInput(short x, short y,short endX,short endY,short color)
+{
 	
+	std::string text;
+	
+
+	COORD startPos = { x,y };
+	SetConsoleCursorPosition(handleStdOut, startPos);
+	std::getline(std::cin, text);
+
+	std::wstring input_wstring(text.begin(), text.end());
+
+	WriteConsoleOutputCharacterW(handleStdOut, input_wstring.c_str(), text.size(), startPos, &events);
+
 	
 }
 
@@ -192,7 +206,7 @@ void WindowInti::Draw(int x, int y, short symbol, short color)
 	if (x >= 0 && x < width && y >= 0 && y < height)
 	{
 		screen[y * width + x].Char.UnicodeChar = symbol;
-		screen[y * width + x + y].Attributes = color;
+		screen[y * width + x].Attributes = color;
 	}
 }
 

@@ -18,24 +18,22 @@ int main() {
 		//Draw Text wstring fucntion tack an x and y position and a wide string (L"text") upper case L must come frist 
 		consoleCreate.DrawTextWString(10, 20,L"hello Thierry");
 		
-		consoleCreate.DrawLine(0, 12, 120, 12);
-
-		if (consoleCreate.IsFocsed()) {
-			consoleCreate.DrawTextWString(10, 22, L"console is focsed");
-		}
+		consoleCreate.DrawUserInput(12, 6,0,0, FG_WHITE);
 		
-		consoleCreate.DrawLine(0, 2, 120, 2);
-
-
-		//use captile letter for get key and use VK_ for other keys
-		if (consoleCreate.GetKey('S').isPressed) {
-			consoleCreate.DrawTextWString(20, y, L"hello jared");	
-			
+		
+		if (consoleCreate.IsFocsed()) {
+			consoleCreate.DrawTextWString(10, 22, L"isfocice");
 		}
-		if (consoleCreate.GetKey('W').isRelesed)
+		else
 		{
 			consoleCreate.ClearConsole();
 		}
+		
+		
+		
+
+		//use captile letter for get key and use VK_ for other keys
+		
 		if (consoleCreate.GetMouseX() == 55 && consoleCreate.GetMouseY() == 30) {
 			consoleCreate.DrawTextWString(55, 30, L"the mouse is at 55x and 30y ish");
 		}
