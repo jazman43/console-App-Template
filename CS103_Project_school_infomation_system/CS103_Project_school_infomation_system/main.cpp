@@ -18,7 +18,7 @@ int main() {
 		//Draw Text wstring fucntion tack an x and y position and a wide string (L"text") upper case L must come frist 
 		consoleCreate.DrawTextWString(10, 20,L"hello Thierry");
 		
-		consoleCreate.DrawUserInput(12, 6,0,0, FG_WHITE);
+		//consoleCreate.DrawUserInput(12, 6, FG_WHITE);
 		
 		
 		if (consoleCreate.IsFocsed()) {
@@ -26,7 +26,7 @@ int main() {
 		}
 		else
 		{
-			consoleCreate.ClearConsole();
+			//consoleCreate.ClearConsole();
 		}
 		
 		

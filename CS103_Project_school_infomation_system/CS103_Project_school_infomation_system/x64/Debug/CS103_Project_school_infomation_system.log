@@ -1,6 +1,2 @@
 ﻿  windowInti.cpp
-C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\CS103_Project_school_infomation_system\windowInti.cpp(153,21): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
-C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\CS103_Project_school_infomation_system\windowInti.cpp(153,23): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
-C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\CS103_Project_school_infomation_system\windowInti.cpp(155,89): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
-C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\CS103_Project_school_infomation_system\windowInti.cpp(186,98): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
   CS103_Project_school_infomation_system.vcxproj -> C:\Users\GGPC\Documents\GitHub\school-Projects\school-Projects\CS103_Project_school_infomation_system\x64\Debug\CS103_Project_school_infomation_system.exe

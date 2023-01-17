@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 #include <stdio.h>
-
+#include <conio.h>
 
 
 #ifndef UNICODE
@@ -73,14 +73,17 @@ public:
 
 	void ClearConsole();
 	
-	void DrawUserInput(short x, short y, short endX, short endY,short color = FG_WHITE);
+	std::string DrawUserInput(short x, short y, WORD color = FG_WHITE);
 
 	void Draw(int x, int y, short symbol = PIXEL_SOLID, short color = FG_WHITE);
 
 	void DrawLine(int startX, int startY, int endX, int endY, short symbol = PIXEL_SOLID, short color = FG_WHITE);
 
-
+	void CreateBackBuffer();
 	
+	void handleKeyBoardInput();
+	void handleMouseInput();
+
 	int ScreenWidth()
 	{
 		return width;
@@ -96,6 +99,7 @@ private:
 	int width = 120;
 	int height = 40;
 	CHAR_INFO* screen;
+	CHAR_INFO* backBuffer;
 
 	INPUT_RECORD inputBuffer[32];
 	DWORD events = 0;

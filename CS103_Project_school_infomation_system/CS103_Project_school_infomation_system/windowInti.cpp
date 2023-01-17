@@ -49,7 +49,7 @@ WindowInti::WindowInti()
 	screen = new CHAR_INFO[width * height];
 	memset(screen, 0, sizeof(CHAR_INFO) * width * height);
 
-	//SetConsoleCtrlHandler((PHANDLER_ROUTINE)CloseHandle, TRUE);
+	CreateBackBuffer();
 
 
 	
@@ -66,99 +66,23 @@ WindowInti::~WindowInti()
 
 void WindowInti::Update()
 {
-	//handle keyboard input
-	for (int i = 0; i < 256; i++) {
-		keyNewState[i] = GetAsyncKeyState(i);
+	handleKeyBoardInput();
+	handleMouseInput();
 
-		keys[i].isPressed = false;
-		keys[i].isRelesed = false;
+	
 
-		if (keyNewState[i] != keyOldState[i]) {
-
-			if (keyNewState[i] & 0x8000) {
-				keys[i].isPressed = !keys[i].isHold;
-				keys[i].isHold = true;
-			}
-			else
-			{
-				keys[i].isRelesed = true;
-				keys[i].isHold = false;
-			}
-		}
-
-		keyOldState[i] = keyNewState[i];
-
-	}
-
-	inputBuffer[31];
-	events = 0;
-	GetNumberOfConsoleInputEvents(handleStdIn, &events);
-	if (events > 0) {
-		ReadConsoleInput(handleStdIn, inputBuffer, events, &events);
-	}
-
-	for (DWORD i = 0; i < events; i++) {
-		switch (inputBuffer[i].EventType)
-		{
-		case FOCUS_EVENT:
-			//set focus
-			consoleInFocus = inputBuffer[i].Event.FocusEvent.bSetFocus;
-			break;
-		case MOUSE_EVENT:
-			switch (inputBuffer[i].Event.MouseEvent.dwEventFlags)
-			{
-			case MOUSE_MOVED:
-				mousePosX = inputBuffer[i].Event.MouseEvent.dwMousePosition.X;
-				mousePosY = inputBuffer[i].Event.MouseEvent.dwMousePosition.Y;
-			break;
-			case 0:
-				for (int m = 0; m < 5; m++) {
-					mouseNewState[m] = (inputBuffer[i].Event.MouseEvent.dwButtonState & (1 << m)) > 0;
-				}
-
-			default:
-				break;
-			}
-		default:
-			break;
-		}
-	}
-	for (int m = 0; m < 5; m++) {
-		mouse[m].isPressed = false;
-		mouse[m].isRelesed = false;
-
-		if (mouseNewState[m] != mouseOldState[m]) {
-			if (mouseNewState[m]) {
-				mouse[m].isPressed = true;
-				mouse[m].isHold = true;
-			}
-			else
-			{
-				mouse[m].isRelesed = true;
-				mouse[m].isHold = false;
-			}
-		}
-
-		mouseOldState[m] = mouseNewState[m];
-
-	}
-
-		
+	memcpy(screen, backBuffer, sizeof(CHAR_INFO) * width * height);
 	WriteConsoleOutput(handleStdOut, screen, { (short)width, (short)height }, { 0,0 }, &rectWindow);
 }
 
 
 void WindowInti::DrawTextWString(int x, int y, std::wstring text, short color)
 {
-	COORD startPos = { x,y };
-
-	WriteConsoleOutputCharacterW(handleStdOut, text.c_str(), text.size(), startPos, &events);
-
 	
-	/*for (int i = 0; i < text.size(); i++) {
+	for (int i = 0; i < text.size(); i++) {
 		screen[y * width + x + i].Char.UnicodeChar = text[i];
 		screen[y * width + x + i].Attributes = color;
-	}*/
+	}
 }
 
 void WindowInti::ClearConsole()
@@ -171,21 +95,54 @@ void WindowInti::ClearConsole()
 	
 }
 
-void WindowInti::DrawUserInput(short x, short y,short endX,short endY,short color)
+
+
+std::string WindowInti::DrawUserInput(short x, short y, WORD color)
 {
-	
 	std::string text;
-	
+	COORD cursorPos = { x, y };
+	SetConsoleCursorPosition(handleStdOut, cursorPos);
+	int boxWidth = 32, boxHeight = 1;
 
-	COORD startPos = { x,y };
-	SetConsoleCursorPosition(handleStdOut, startPos);
-	std::getline(std::cin, text);
+	while (true)
+	{
+		INPUT_RECORD input;
+		DWORD events;
+		ReadConsoleInput(handleStdIn, &input, 1, &events);
 
-	std::wstring input_wstring(text.begin(), text.end());
+		if (input.EventType == KEY_EVENT && input.Event.KeyEvent.bKeyDown)
+		{
+			char ch = input.Event.KeyEvent.uChar.AsciiChar;
 
-	WriteConsoleOutputCharacterW(handleStdOut, input_wstring.c_str(), text.size(), startPos, &events);
+			if (GetKey(VK_RETURN).isPressed)
+				break;
 
-	
+			if (GetKey(VK_BACK).isPressed && cursorPos.X > x && cursorPos.X < x + boxWidth && cursorPos.Y > y && cursorPos.Y < y + boxHeight)
+			{
+				text.pop_back();
+				cursorPos.X--;
+				int index = cursorPos.Y * width + cursorPos.X;
+				backBuffer[index].Char.UnicodeChar = L' ';
+				Update();
+			}
+			else if (cursorPos.X >= x && cursorPos.X < x + boxWidth && cursorPos.Y >= y && cursorPos.Y < y)
+			{
+				text += ch;
+				DWORD written;
+				WriteConsoleW(handleStdOut, &ch, 1, &written, NULL);
+				cursorPos.X++;
+
+				// update the back buffer
+				int index = cursorPos.Y * width + cursorPos.X;
+				backBuffer[index].Char.UnicodeChar = ch;
+				backBuffer[index].Attributes = color;
+				Update();
+			}
+		}
+
+	}
+		
+	return text;
 }
 
 
@@ -288,5 +245,96 @@ void WindowInti::DrawLine(int startX, int startY, int endX, int endY, short symb
 		}
 	}
 
+}
+
+void WindowInti::CreateBackBuffer()
+{
+	backBuffer = new CHAR_INFO[width * height];
+	memset(backBuffer, 0, sizeof(CHAR_INFO) * width * height);
+
+}
+
+void WindowInti::handleKeyBoardInput()
+{
+	// handle keyboard input
+		for (int i = 0; i < 256; i++) {
+			keyNewState[i] = GetAsyncKeyState(i);
+
+			keys[i].isPressed = false;
+			keys[i].isRelesed = false;
+
+			if (keyNewState[i] != keyOldState[i]) {
+
+				if (keyNewState[i] & 0x8000) {
+					keys[i].isPressed = !keys[i].isHold;
+					keys[i].isHold = true;
+				}
+				else
+				{
+					keys[i].isRelesed = true;
+					keys[i].isHold = false;
+				}
+			}
+
+			keyOldState[i] = keyNewState[i];
+
+		}
+}
+
+void WindowInti::handleMouseInput()
+{
+
+	inputBuffer[31];
+	events = 0;
+	GetNumberOfConsoleInputEvents(handleStdIn, &events);
+	if (events > 0) {
+		ReadConsoleInput(handleStdIn, inputBuffer, events, &events);
+	}
+
+	for (DWORD i = 0; i < events; i++) {
+		switch (inputBuffer[i].EventType)
+		{
+		case FOCUS_EVENT:
+			//set focus
+			consoleInFocus = inputBuffer[i].Event.FocusEvent.bSetFocus;
+			break;
+		case MOUSE_EVENT:
+			switch (inputBuffer[i].Event.MouseEvent.dwEventFlags)
+			{
+			case MOUSE_MOVED:
+				mousePosX = inputBuffer[i].Event.MouseEvent.dwMousePosition.X;
+				mousePosY = inputBuffer[i].Event.MouseEvent.dwMousePosition.Y;
+				break;
+			case 0:
+				for (int m = 0; m < 5; m++) {
+					mouseNewState[m] = (inputBuffer[i].Event.MouseEvent.dwButtonState & (1 << m)) > 0;
+				}
+
+			default:
+				break;
+			}
+		default:
+			break;
+		}
+	}
+	for (int m = 0; m < 5; m++) {
+		mouse[m].isPressed = false;
+		mouse[m].isRelesed = false;
+
+		if (mouseNewState[m] != mouseOldState[m]) {
+			if (mouseNewState[m]) {
+				mouse[m].isPressed = true;
+				mouse[m].isHold = true;
+			}
+			else
+			{
+				mouse[m].isRelesed = true;
+				mouse[m].isHold = false;
+			}
+		}
+
+		mouseOldState[m] = mouseNewState[m];
+
+	}
 }
 
