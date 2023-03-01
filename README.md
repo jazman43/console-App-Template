@@ -1,4 +1,4 @@
-# school-Projects
+# console app templat
 
-#CS103 Porject / School info system
+#window console app
 >started 15/12/22
