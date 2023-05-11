@@ -1,3 +1,4 @@
+
 #include "windowInti.h"
 
 WindowInti::WindowInti()
@@ -54,7 +55,7 @@ WindowInti::WindowInti()
 
 	
 
-	SetConsoleTitle(L"School Info System");
+	SetConsoleTitle(L"Console-Window");
 }
 
 WindowInti::~WindowInti()
@@ -71,8 +72,9 @@ void WindowInti::Update()
 
 	
 
-	memcpy(screen, backBuffer, sizeof(CHAR_INFO) * width * height);
+	//memcpy(screen, backBuffer, sizeof(CHAR_INFO) * width * height);
 	WriteConsoleOutput(handleStdOut, screen, { (short)width, (short)height }, { 0,0 }, &rectWindow);
+	
 }
 
 
@@ -85,14 +87,29 @@ void WindowInti::DrawTextWString(int x, int y, std::wstring text, short color)
 	}
 }
 
-void WindowInti::ClearConsole()
+void WindowInti::ClearConsole(bool clearAll, int x, int y, int textHeight, int textWidth)
 {
-	for (int x = 0; x < width; x++) {
-		for (int y = 0; y < height; y++) {
-			screen[y * width + x].Char.UnicodeChar = L' ';
+
+	CHAR_INFO emptyCharInfo = { L' ', BG_BLACK };
+
+	if (clearAll) {
+		
+		for (int i = 0; i < width * height; i++) {
+			screen[i] = emptyCharInfo;
+		}
+	}
+	else
+	{
+		for (int i = y; i < y + textHeight; i++) {
+			 for (int j = x; j < x + textWidth; j++) {
+			      screen[i * width + j] = emptyCharInfo;
+			 }
 		}
 	}
 	
+
+
+
 }
 
 

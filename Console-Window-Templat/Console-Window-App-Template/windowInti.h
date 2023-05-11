@@ -71,7 +71,7 @@ public:
 
 	void DrawTextWString(int x, int y, std::wstring text, short color = FG_WHITE);
 
-	void ClearConsole();
+	void ClearConsole(bool clearAll, int x, int y, int textHeight, int textWidth);
 	
 	std::string DrawUserInput(short x, short y, WORD color = FG_WHITE);
 

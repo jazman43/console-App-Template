@@ -9,15 +9,24 @@ int main() {
 	//main loop will call one function that will handle quiting starting menu and will include header files needed.
 
 	WindowInti consoleCreate;	
-	
+	bool canClear = false;
 
 	
-	int y = 11;
+	
 	while (true)
 	{
+		//consoleCreate.ClearConsole
+
 		//Draw Text wstring fucntion tack an x and y position and a wide string (L"text") upper case L must come frist 
-		consoleCreate.DrawTextWString(10, 20,L"hello Thierry");
-		
+		consoleCreate.DrawTextWString(10, 20,L"hello and welcome");
+		if(consoleCreate.GetMouseX() >= 10 
+			&& consoleCreate.GetMouseY() == 20 
+			&& consoleCreate.GetMouse(0).isPressed)
+		{			
+			consoleCreate.DrawTextWString(10, 10, L"hello User jared");
+			consoleCreate.DrawLine(2, 10, 2, 100);
+			
+		}
 		//consoleCreate.DrawUserInput(12, 6, FG_WHITE);
 		
 		
@@ -26,7 +35,7 @@ int main() {
 		}
 		else
 		{
-			//consoleCreate.ClearConsole();
+			canClear = true;
 		}
 		
 		
@@ -46,6 +55,10 @@ int main() {
 			consoleCreate.DrawTextWString(55, 32, L"the mouse button (0) is pressed");
 		}
 		//updates console and mouse/keys every frame 
+		if (canClear) {
+			consoleCreate.ClearConsole(true,0,0,0,0);
+			canClear = false;
+		}
 		consoleCreate.Update();
 	}
 
