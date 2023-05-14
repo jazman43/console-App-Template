@@ -1,8 +1,17 @@
 #include <iostream>
+#include <chrono>
+#include <thread>
+
+
 #include "windowInti.h"
 
 
 //use Unicode to change color and symbol (0x000F);
+
+
+
+
+
 
 
 int main() {
@@ -11,11 +20,16 @@ int main() {
 	WindowInti consoleCreate;	
 	bool canClear = false;
 
+	constexpr double refreshRate = 60.0; // Refresh rate in frames per second
 	
+
+	const std::chrono::duration<double> frameDuration = std::chrono::duration<double>(1.0 / refreshRate);
 	
 	while (true)
 	{
-		//consoleCreate.ClearConsole
+		
+		const auto frameStartTime = std::chrono::steady_clock::now();
+
 
 		//Draw Text wstring fucntion tack an x and y position and a wide string (L"text") upper case L must come frist 
 		consoleCreate.DrawTextWString(10, 20,L"hello and welcome");
@@ -35,7 +49,7 @@ int main() {
 		}
 		else
 		{
-			canClear = true;
+			consoleCreate.ClearConsole(1, 0, 0, 0, 0);
 		}
 		
 		
@@ -43,7 +57,7 @@ int main() {
 
 		//use captile letter for get key and use VK_ for other keys
 		
-		if (consoleCreate.GetMouseX() == 55 && consoleCreate.GetMouseY() == 30) {
+		if (consoleCreate.GetMouseX() >= 55 && consoleCreate.GetMouseY() == 30) {
 			consoleCreate.DrawTextWString(55, 30, L"the mouse is at 55x and 30y ish");
 		}
 
@@ -54,12 +68,22 @@ int main() {
 		if (consoleCreate.GetMouse(0).isPressed) {
 			consoleCreate.DrawTextWString(55, 32, L"the mouse button (0) is pressed");
 		}
-		//updates console and mouse/keys every frame 
-		if (canClear) {
-			consoleCreate.ClearConsole(true,0,0,0,0);
-			canClear = false;
-		}
+		
+		
+		//consoleCreate.ClearConsole(true, 0, 0, 0, 0);
 		consoleCreate.Update();
+		
+
+		// Calculate the time taken for the frame update and clearing
+		const auto frameEndTime = std::chrono::steady_clock::now();
+		const std::chrono::duration<double> frameTime = frameEndTime - frameStartTime;
+
+		// Sleep for the remaining time to achieve the desired refresh rate
+		const std::chrono::duration<double> sleepTime = frameDuration - frameTime;
+		if (sleepTime > std::chrono::duration<double>(0))
+		{
+			std::this_thread::sleep_for(sleepTime);
+		}
 	}
 
 	return 0;
